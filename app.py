@@ -6,6 +6,7 @@ Versão corrigida:
 - navegação superior centralizada, legível e sem emojis visíveis
 - botão de Novo Ticket removido do menu principal para evitar redundância
 - CSS reforçado para visual claro mesmo quando o tema do navegador/Streamlit está escuro
+- Analytics redesenhado com gráficos legíveis, cards e visual executivo
 - cliente abre ticket e acompanha seus tickets
 - admin lê, responde e atualiza status
 - design claro inspirado em Mailchimp
@@ -21,7 +22,10 @@ from typing import Any
 
 import pandas as pd
 import plotly.express as px
+import plotly.io as pio
 import streamlit as st
+
+pio.templates.default = "plotly_white"
 
 # ---------------------------------------------------------------------------
 # IMPORTS DO PROJETO
@@ -259,17 +263,91 @@ label, .stMarkdown p { color: #344054 !important; }
 .stButton > button {
     border-radius: 10px !important;
     font-weight: 800 !important;
+    min-height: 42px !important;
+    box-shadow: none !important;
+    transition: all .15s ease !important;
+}
+
+.stButton button[data-testid="stBaseButton-primary"],
+.stButton button[kind="primary"] {
     border: 1px solid #111827 !important;
     background: var(--yellow) !important;
     color: #111827 !important;
-    box-shadow: none !important;
-    min-height: 42px !important;
 }
 
-.stButton > button:hover {
+.stButton button[data-testid="stBaseButton-primary"] *,
+.stButton button[kind="primary"] * {
+    color: #111827 !important;
+}
+
+.stButton button[data-testid="stBaseButton-primary"]:hover,
+.stButton button[kind="primary"]:hover {
     background: #f2bf00 !important;
     border-color: #111827 !important;
     transform: translateY(-1px);
+}
+
+.stButton button[data-testid="stBaseButton-secondary"],
+.stButton button[kind="secondary"] {
+    border: 1px solid #cfd8c7 !important;
+    background: rgba(255,255,255,.96) !important;
+    color: #111827 !important;
+}
+
+.stButton button[data-testid="stBaseButton-secondary"] *,
+.stButton button[kind="secondary"] * {
+    color: #111827 !important;
+}
+
+.stButton button[data-testid="stBaseButton-secondary"]:hover,
+.stButton button[kind="secondary"]:hover {
+    background: #fff8d6 !important;
+    border-color: #e0bf00 !important;
+    color: #111827 !important;
+}
+
+/* O botão de voltar fica como controle leve: seta visível, sem bloco preto. */
+.stButton button[aria-label="Voltar para a tela anterior"],
+.stButton button[title="Voltar para a tela anterior"] {
+    background: transparent !important;
+    border-color: transparent !important;
+    color: #111827 !important;
+    font-size: 1.35rem !important;
+    min-width: 42px !important;
+    padding: 0 !important;
+}
+
+.stButton button[aria-label="Voltar para a tela anterior"]:hover,
+.stButton button[title="Voltar para a tela anterior"]:hover {
+    background: #fff8d6 !important;
+    border-color: #e0bf00 !important;
+}
+
+[data-testid="stPlotlyChart"] {
+    background: #ffffff !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 18px !important;
+    padding: 14px 14px 6px !important;
+    box-shadow: 0 10px 24px rgba(17, 24, 39, 0.05) !important;
+}
+
+[data-testid="stPlotlyChart"] > div {
+    border-radius: 14px !important;
+}
+
+.analytics-kicker {
+    color: #667085;
+    font-size: .86rem;
+    font-weight: 700;
+    margin: -4px 0 16px;
+}
+
+.section-label {
+    margin: 24px 0 12px;
+    color: #111827;
+    font-size: 1.05rem;
+    font-weight: 900;
+    letter-spacing: -.03em;
 }
 
 .stAlert {
@@ -755,12 +833,13 @@ def status_badge(status: str) -> str:
 
 def metric_card(label: str, value: str, icon: str, color: str, delta: str = "") -> str:
     delta_html = f"<div class='metric-delta'>{html(delta)}</div>" if delta else ""
+    icon_html = f"<div class='metric-icon icon-{html(color)}'>{html(icon)}</div>" if icon else ""
     return f"""
     <div class="metric-card">
         <div class="metric-label">{html(label)}</div>
         <div class="metric-value">{html(value)}</div>
         {delta_html}
-        <div class="metric-icon icon-{html(color)}">{html(icon)}</div>
+        {icon_html}
     </div>
     """
 
@@ -1015,6 +1094,63 @@ def render_forecast_summary(queue_fc: pd.DataFrame, vertical_fc: pd.DataFrame) -
         st.markdown(metric_card("Filas em alerta", str(overloaded), "⚠️", "red", "Alta demanda"), unsafe_allow_html=True)
 
 
+
+def style_plotly(fig, title: str | None = None, height: int = 420, show_legend: bool = True):
+    """Aplica um padrão visual claro e legível em todos os gráficos do Analytics."""
+    if title:
+        fig.update_layout(title=dict(text=title, font=dict(size=18, color="#111827"), x=0.02, xanchor="left"))
+
+    fig.update_layout(
+        template="plotly_white",
+        height=height,
+        paper_bgcolor="#ffffff",
+        plot_bgcolor="#ffffff",
+        font=dict(family="Inter, Arial, sans-serif", size=13, color="#111827"),
+        margin=dict(l=24, r=24, t=62 if title else 28, b=42),
+        legend=dict(
+            title_font=dict(color="#111827", size=12),
+            font=dict(color="#344054", size=12),
+            bgcolor="rgba(255,255,255,0.92)",
+            bordercolor="#edf0e8",
+            borderwidth=1,
+            orientation="h",
+            yanchor="bottom",
+            y=1.02,
+            xanchor="right",
+            x=1,
+        ),
+        showlegend=show_legend,
+        hoverlabel=dict(bgcolor="#111827", font=dict(color="#ffffff")),
+    )
+    fig.update_xaxes(
+        showgrid=True,
+        gridcolor="#e5e7eb",
+        zeroline=False,
+        linecolor="#d0d5dd",
+        tickfont=dict(color="#344054", size=12),
+        title_font=dict(color="#344054", size=12),
+        automargin=True,
+    )
+    fig.update_yaxes(
+        showgrid=False,
+        linecolor="#d0d5dd",
+        tickfont=dict(color="#344054", size=12),
+        title_font=dict(color="#344054", size=12),
+        automargin=True,
+    )
+    fig.update_traces(
+        marker_line_width=0,
+        textfont=dict(color="#111827", size=12),
+        cliponaxis=False,
+    )
+    return fig
+
+
+def add_value_labels(fig, textposition: str = "outside"):
+    fig.update_traces(texttemplate="%{text}", textposition=textposition)
+    return fig
+
+
 # -----------------------------------------------------------------------------
 # LOGIN
 # -----------------------------------------------------------------------------
@@ -1185,7 +1321,7 @@ with top3:
         if st.button("←", use_container_width=True, key="back_top", help="Voltar para a tela anterior"):
             go_back()
     with exit_col:
-        if st.button("Sair", use_container_width=True, key="logout_top"):
+        if st.button("Sair", type="primary", use_container_width=True, key="logout_top"):
             logout()
 
 st.markdown("<div style='height:18px;'></div>", unsafe_allow_html=True)
@@ -1843,71 +1979,160 @@ elif page == "📊  Analytics":
     if tickets.empty:
         st.markdown("<div class='empty-state'>Sem dados para análise.</div>", unsafe_allow_html=True)
     else:
-        c1, c2 = st.columns(2, gap="medium")
-        with c1:
-            fig = px.histogram(
-                tickets,
-                x="priority",
-                title="Tickets por prioridade",
-                category_orders={"priority": ["Crítica", "Alta", "Média", "Baixa"]},
-                color="priority",
-                color_discrete_map={"Crítica": "#ef4444", "Alta": "#f97316", "Média": "#facc15", "Baixa": "#10b981"},
-            )
-            fig.update_layout(paper_bgcolor="white", plot_bgcolor="white", font_color="#344054", margin=dict(l=20, r=20, t=50, b=20))
-            st.plotly_chart(fig, use_container_width=True)
-        with c2:
-            fig = px.histogram(tickets, x="product", title="Tickets por produto", color_discrete_sequence=["#007c89"])
-            fig.update_layout(paper_bgcolor="white", plot_bgcolor="white", font_color="#344054", margin=dict(l=20, r=20, t=50, b=20))
-            st.plotly_chart(fig, use_container_width=True)
-
-        c3, c4 = st.columns(2, gap="medium")
-        with c3:
-            fig = px.histogram(
-                tickets,
-                x="client_name",
-                color="priority",
-                title="Tickets por cliente",
-                color_discrete_map={"Crítica": "#ef4444", "Alta": "#f97316", "Média": "#facc15", "Baixa": "#10b981"},
-            )
-            fig.update_layout(paper_bgcolor="white", plot_bgcolor="white", font_color="#344054", margin=dict(l=20, r=20, t=50, b=20))
-            st.plotly_chart(fig, use_container_width=True)
-        with c4:
-            fig = px.scatter_mapbox(
-                clients,
-                lat="latitude",
-                lon="longitude",
-                hover_name="client_name",
-                hover_data=["sector", "health_score", "churn_risk"],
-                color="churn_risk",
-                size="health_score",
-                zoom=3.2,
-                height=420,
-                color_discrete_map={"Baixo": "#10b981", "Médio": "#f97316", "Alto": "#ef4444"},
-            )
-            fig.update_layout(mapbox_style="open-street-map", paper_bgcolor="white", margin=dict(l=0, r=0, t=35, b=0), title="Mapa de clientes")
-            st.plotly_chart(fig, use_container_width=True)
-
-        st.markdown("---")
-        st.markdown("## Previsão de abertura de chamados")
-        st.caption(
-            "Estimativa operacional para os próximos 7 dias, calculada por média recente, histórico de 30 dias, backlog, criticidade, Health Score e risco do cliente."
-        )
+        analytics_df = build_forecast_dataset(tickets, clients)
+        if analytics_df.empty:
+            analytics_df = tickets.copy()
+            analytics_df["vertical"] = "Outros"
 
         forecast_queue = forecast_by_dimension(tickets, clients, "responsible_team", horizon_days=7)
         forecast_vertical = forecast_by_dimension(tickets, clients, "vertical", horizon_days=7)
 
+        total_tickets = int(len(tickets))
+        critical_open = int(((tickets["priority"] == "Crítica") & (tickets["status"] != "Resolvido")).sum())
+        open_backlog = int((tickets["status"] != "Resolvido").sum())
+        top_product = str(tickets["product"].value_counts().index[0]) if "product" in tickets.columns and not tickets.empty else "—"
+        forecast_total = int(forecast_queue["forecast_7d"].sum()) if not forecast_queue.empty else 0
+
+        k1, k2, k3, k4 = st.columns(4)
+        with k1:
+            st.markdown(metric_card("Tickets analisados", str(total_tickets), "", "blue", "Base operacional"), unsafe_allow_html=True)
+        with k2:
+            st.markdown(metric_card("Críticos abertos", str(critical_open), "", "red", "Exigem atenção"), unsafe_allow_html=True)
+        with k3:
+            st.markdown(metric_card("Backlog ativo", str(open_backlog), "", "orange", "Não resolvidos"), unsafe_allow_html=True)
+        with k4:
+            st.markdown(metric_card("Forecast 7 dias", str(forecast_total), "", "purple", "Chamados previstos"), unsafe_allow_html=True)
+
+        st.markdown("<div class='section-label'>Distribuição operacional</div>", unsafe_allow_html=True)
+        st.markdown("<div class='analytics-kicker'>Leitura rápida dos volumes por prioridade, produto, cliente e risco da carteira.</div>", unsafe_allow_html=True)
+
+        priority_order = ["Crítica", "Alta", "Média", "Baixa"]
+        priority_colors = {"Crítica": "#ef4444", "Alta": "#f97316", "Média": "#facc15", "Baixa": "#10b981"}
+        risk_colors = {"Alta demanda": "#ef4444", "Atenção": "#f97316", "Estável": "#10b981"}
+        churn_colors = {"Baixo": "#10b981", "Médio": "#f97316", "Alto": "#ef4444"}
+
+        c1, c2 = st.columns(2, gap="large")
+        with c1:
+            priority_df = (
+                tickets["priority"]
+                .value_counts()
+                .reindex(priority_order)
+                .fillna(0)
+                .astype(int)
+                .reset_index()
+            )
+            priority_df.columns = ["priority", "tickets"]
+            priority_df = priority_df[priority_df["tickets"] > 0]
+
+            fig = px.bar(
+                priority_df.sort_values("tickets", ascending=True),
+                x="tickets",
+                y="priority",
+                orientation="h",
+                color="priority",
+                text="tickets",
+                color_discrete_map=priority_colors,
+            )
+            fig = add_value_labels(style_plotly(fig, "Tickets por prioridade", height=390, show_legend=False))
+            fig.update_layout(xaxis_title="Quantidade de tickets", yaxis_title="Prioridade")
+            st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+
+        with c2:
+            product_df = (
+                tickets.groupby("product", dropna=False)
+                .size()
+                .reset_index(name="tickets")
+                .sort_values("tickets", ascending=True)
+            )
+            fig = px.bar(
+                product_df,
+                x="tickets",
+                y="product",
+                orientation="h",
+                text="tickets",
+                color_discrete_sequence=["#007c89"],
+            )
+            fig = add_value_labels(style_plotly(fig, "Tickets por produto", height=390, show_legend=False))
+            fig.update_layout(xaxis_title="Quantidade de tickets", yaxis_title="Produto")
+            st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+
+        c3, c4 = st.columns(2, gap="large")
+        with c3:
+            client_priority = (
+                tickets.groupby(["client_name", "priority"], dropna=False)
+                .size()
+                .reset_index(name="tickets")
+            )
+            client_totals = tickets.groupby("client_name").size().sort_values(ascending=True)
+            client_priority["client_name"] = pd.Categorical(
+                client_priority["client_name"],
+                categories=client_totals.index.tolist(),
+                ordered=True,
+            )
+            fig = px.bar(
+                client_priority,
+                x="tickets",
+                y="client_name",
+                color="priority",
+                orientation="h",
+                text="tickets",
+                category_orders={"priority": priority_order},
+                color_discrete_map=priority_colors,
+            )
+            fig = style_plotly(fig, "Tickets por cliente e prioridade", height=430, show_legend=True)
+            fig.update_traces(textposition="inside", insidetextanchor="middle", textfont=dict(color="#111827", size=11))
+            fig.update_layout(xaxis_title="Quantidade de tickets", yaxis_title="Cliente", barmode="stack")
+            st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+
+        with c4:
+            portfolio_df = clients.copy()
+            ticket_count = tickets.groupby("client_name").size().reset_index(name="tickets")
+            open_count = tickets[tickets["status"] != "Resolvido"].groupby("client_name").size().reset_index(name="backlog")
+            portfolio_df = portfolio_df.merge(ticket_count, on="client_name", how="left").merge(open_count, on="client_name", how="left")
+            portfolio_df["tickets"] = portfolio_df["tickets"].fillna(0).astype(int)
+            portfolio_df["backlog"] = portfolio_df["backlog"].fillna(0).astype(int)
+            portfolio_df["health_score"] = pd.to_numeric(portfolio_df["health_score"], errors="coerce").fillna(80)
+            portfolio_df["bubble_size"] = portfolio_df["tickets"].clip(lower=1)
+
+            fig = px.scatter(
+                portfolio_df,
+                x="health_score",
+                y="backlog",
+                size="bubble_size",
+                color="churn_risk",
+                text="client_name",
+                hover_name="client_name",
+                hover_data={
+                    "sector": True,
+                    "tickets": True,
+                    "backlog": True,
+                    "health_score": True,
+                    "churn_risk": True,
+                    "bubble_size": False,
+                },
+                color_discrete_map=churn_colors,
+                size_max=42,
+            )
+            fig = style_plotly(fig, "Matriz de risco da carteira", height=430, show_legend=True)
+            fig.update_traces(textposition="top center", textfont=dict(color="#111827", size=11))
+            fig.update_layout(
+                xaxis_title="Health Score",
+                yaxis_title="Backlog aberto",
+                xaxis=dict(range=[55, 102], gridcolor="#e5e7eb", tickfont=dict(color="#344054"), title_font=dict(color="#344054")),
+                yaxis=dict(gridcolor="#e5e7eb", tickfont=dict(color="#344054"), title_font=dict(color="#344054")),
+            )
+            st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+
+        st.markdown("<div class='section-label'>Previsão de abertura de chamados</div>", unsafe_allow_html=True)
+        st.markdown(
+            "<div class='analytics-kicker'>Estimativa operacional para os próximos 7 dias, calculada por média recente, histórico de 30 dias, backlog, criticidade, Health Score e risco do cliente.</div>",
+            unsafe_allow_html=True,
+        )
+
         render_forecast_summary(forecast_queue, forecast_vertical)
 
-        fq_col, fv_col = st.columns(2, gap="medium")
-
-        risk_colors = {
-            "Alta demanda": "#ef4444",
-            "Atenção": "#f97316",
-            "Estável": "#10b981",
-        }
-
+        fq_col, fv_col = st.columns(2, gap="large")
         with fq_col:
-            st.markdown("### Por fila de atendimento")
             if forecast_queue.empty:
                 st.info("Sem dados suficientes para previsão por fila.")
             else:
@@ -1918,23 +2143,15 @@ elif page == "📊  Analytics":
                     orientation="h",
                     color="risk_level",
                     text="forecast_7d",
-                    title="Chamados previstos por fila — próximos 7 dias",
                     color_discrete_map=risk_colors,
                 )
-                fig_queue.update_layout(
-                    paper_bgcolor="white",
-                    plot_bgcolor="white",
-                    font_color="#344054",
-                    margin=dict(l=20, r=20, t=50, b=20),
-                    xaxis_title="Chamados previstos",
-                    yaxis_title="Fila",
-                    legend_title="Risco",
-                )
-                st.plotly_chart(fig_queue, use_container_width=True)
-                st.dataframe(forecast_queue, use_container_width=True, hide_index=True)
+                fig_queue = add_value_labels(style_plotly(fig_queue, "Forecast por fila", height=420, show_legend=True))
+                fig_queue.update_layout(xaxis_title="Chamados previstos", yaxis_title="Fila")
+                st.plotly_chart(fig_queue, use_container_width=True, config={"displayModeBar": False})
+                with st.expander("Ver dados da previsão por fila"):
+                    st.dataframe(forecast_queue, use_container_width=True, hide_index=True)
 
         with fv_col:
-            st.markdown("### Por vertical de atuação")
             if forecast_vertical.empty:
                 st.info("Sem dados suficientes para previsão por vertical.")
             else:
@@ -1945,24 +2162,16 @@ elif page == "📊  Analytics":
                     orientation="h",
                     color="risk_level",
                     text="forecast_7d",
-                    title="Chamados previstos por vertical — próximos 7 dias",
                     color_discrete_map=risk_colors,
                 )
-                fig_vertical.update_layout(
-                    paper_bgcolor="white",
-                    plot_bgcolor="white",
-                    font_color="#344054",
-                    margin=dict(l=20, r=20, t=50, b=20),
-                    xaxis_title="Chamados previstos",
-                    yaxis_title="Vertical",
-                    legend_title="Risco",
-                )
-                st.plotly_chart(fig_vertical, use_container_width=True)
-                st.dataframe(forecast_vertical, use_container_width=True, hide_index=True)
+                fig_vertical = add_value_labels(style_plotly(fig_vertical, "Forecast por vertical", height=420, show_legend=True))
+                fig_vertical.update_layout(xaxis_title="Chamados previstos", yaxis_title="Vertical")
+                st.plotly_chart(fig_vertical, use_container_width=True, config={"displayModeBar": False})
+                with st.expander("Ver dados da previsão por vertical"):
+                    st.dataframe(forecast_vertical, use_container_width=True, hide_index=True)
 
         render_text_section(
             "Como interpretar a previsão",
             "Esta previsão é uma camada operacional explicável: ela não tenta substituir um modelo estatístico avançado, mas ajuda o time de CS a antecipar filas e verticais com tendência de maior demanda nos próximos dias. Em uma versão com mais histórico, essa camada poderia evoluir para modelos de séries temporais ou machine learning.",
             tone="success",
         )
-
