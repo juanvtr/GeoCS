@@ -345,6 +345,72 @@ div[data-testid="column"]:has(#back-button-marker) button * {
     color: #111827 !important;
 }
 
+
+/* Alinhamento fino do bloco do usuário + voltar + sair no topo. */
+div[data-testid="stHorizontalBlock"]:has(#top-actions-marker) {
+    align-items: center !important;
+    gap: 10px !important;
+}
+div[data-testid="stHorizontalBlock"]:has(#top-actions-marker) > div[data-testid="column"] {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 52px !important;
+}
+div[data-testid="stHorizontalBlock"]:has(#top-actions-marker) .element-container,
+div[data-testid="stHorizontalBlock"]:has(#top-actions-marker) [data-testid="stButton"],
+div[data-testid="stHorizontalBlock"]:has(#top-actions-marker) .stButton {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+}
+div[data-testid="stHorizontalBlock"]:has(#top-actions-marker) button {
+    margin: 0 !important;
+    transform: none !important;
+}
+div[data-testid="stHorizontalBlock"]:has(#top-actions-marker) button:hover {
+    transform: none !important;
+}
+div[data-testid="column"]:has(#back-button-marker) {
+    max-width: 54px !important;
+}
+div[data-testid="column"]:has(#back-button-marker) button {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 46px !important;
+    min-width: 46px !important;
+    height: 46px !important;
+    min-height: 46px !important;
+    line-height: 1 !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    border: 1px solid #cfd8c7 !important;
+    color: #111827 !important;
+    border-radius: 12px !important;
+}
+div[data-testid="column"]:has(#back-button-marker) button:hover {
+    background: #fff8d6 !important;
+    border-color: #e0bf00 !important;
+}
+div[data-testid="column"]:has(#back-button-marker) button p,
+div[data-testid="column"]:has(#back-button-marker) button span,
+div[data-testid="column"]:has(#back-button-marker) button div {
+    color: #111827 !important;
+    line-height: 1 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 1.16rem !important;
+}
+.top-profile-box {
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:10px;
+    min-height:46px;
+}
+
 [data-testid="stPlotlyChart"] {
     background: #ffffff !important;
     border: 1px solid var(--border) !important;
@@ -1726,11 +1792,13 @@ with top2:
     page = st.session_state["app_page"]
 
 with top3:
-    profile_col, back_col, exit_col = st.columns([0.46, 0.20, 0.34])
+    # Marcador usado apenas para CSS: mantém usuário, botão voltar e sair na mesma linha.
+    st.markdown("<span id='top-actions-marker'></span>", unsafe_allow_html=True)
+    profile_col, back_col, exit_col = st.columns([0.50, 0.14, 0.36], gap="small")
     with profile_col:
         st.markdown(
             f"""
-            <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;">
+            <div class="top-profile-box">
                 <div style="text-align:right;line-height:1.15;">
                     <div style="color:#111827;font-weight:900;font-size:.82rem;">{html(user.get('name','Usuário').split()[0])}</div>
                     <div style="color:#667085;font-size:.72rem;">{html(role_label(role))}</div>
@@ -1742,7 +1810,7 @@ with top3:
         )
     with back_col:
         st.markdown("<span id='back-button-marker'></span>", unsafe_allow_html=True)
-        if st.button("←", use_container_width=True, key="back_top", help="Voltar para a tela anterior", type="secondary"):
+        if st.button("←", use_container_width=False, key="back_top", help="Voltar para a tela anterior", type="secondary"):
             go_back()
     with exit_col:
         if st.button("Sair", type="primary", use_container_width=True, key="logout_top"):
