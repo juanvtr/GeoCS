@@ -1,12 +1,12 @@
 
 """
 GeoCS 360 — Mailchimp-style Customer Success Platform
-Versão final v11:
+Versão final v12:
 - navegação funcional por session_state
 - navegação superior centralizada, legível e sem emojis visíveis
 - botão de Novo Ticket removido do menu principal para evitar redundância
 - CSS reforçado para visual claro mesmo quando o tema do navegador/Streamlit está escuro
-- Analytics redesenhado com gráficos legíveis, cards/tabelas executivas e visual limpo
+- Analytics redesenhado com gráficos menores, forecast compacto e tabelas claras
 - cliente abre ticket e acompanha seus tickets
 - admin lê, responde e atualiza status
 - design claro inspirado em Mailchimp
@@ -498,9 +498,9 @@ div[data-testid="column"]:has(#back-button-marker) button * {
     background: #ffffff;
     border: 1px solid var(--border);
     border-radius: 18px;
-    padding: 20px 22px;
-    min-height: 142px;
-    box-shadow: 0 12px 28px rgba(17, 24, 39, 0.06);
+    padding: 16px 18px;
+    min-height: 118px;
+    box-shadow: 0 10px 22px rgba(17, 24, 39, 0.045);
     position: relative;
     overflow: hidden;
 }
@@ -526,17 +526,17 @@ div[data-testid="column"]:has(#back-button-marker) button * {
 }
 .forecast-value {
     color: #111827;
-    font-size: clamp(1.75rem, 2.2vw, 2.35rem);
+    font-size: clamp(1.45rem, 1.85vw, 2rem);
     line-height: 1.02;
     font-weight: 950;
-    letter-spacing: -0.06em;
+    letter-spacing: -0.055em;
     max-width: 92%;
     overflow-wrap: anywhere;
 }
 .forecast-value.long {
-    font-size: clamp(1.25rem, 1.55vw, 1.65rem);
+    font-size: clamp(1.05rem, 1.22vw, 1.32rem);
     line-height: 1.12;
-    letter-spacing: -0.045em;
+    letter-spacing: -0.04em;
 }
 .forecast-caption {
     margin-top: 12px;
@@ -546,10 +546,10 @@ div[data-testid="column"]:has(#back-button-marker) button * {
 }
 .forecast-pill {
     position: absolute;
-    top: 18px;
-    right: 18px;
-    min-width: 38px;
-    height: 38px;
+    top: 14px;
+    right: 14px;
+    min-width: 32px;
+    height: 32px;
     padding: 0 10px;
     border-radius: 12px;
     display: inline-flex;
@@ -655,6 +655,103 @@ div[data-testid="column"]:has(#back-button-marker) button * {
 .forecast-risk-stable { background: var(--green-soft); color: #047857; }
 .forecast-risk-attention { background: var(--orange-soft); color: #c2410c; }
 .forecast-risk-high { background: var(--red-soft); color: #b42318; }
+
+
+/* Visual compacto para forecast: substitui barras grandes por listas executivas. */
+.forecast-visual-card {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 18px;
+    margin-top: 12px;
+    box-shadow: 0 10px 24px rgba(17, 24, 39, 0.045);
+}
+.forecast-visual-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 14px;
+}
+.forecast-visual-title {
+    color: #111827;
+    font-size: 1.02rem;
+    font-weight: 950;
+    letter-spacing: -0.04em;
+}
+.forecast-visual-subtitle {
+    color: #667085;
+    font-size: .78rem;
+    font-weight: 700;
+    margin-top: 3px;
+}
+.forecast-total-pill {
+    background: #fff3c4;
+    border: 1px solid #f7d44c;
+    color: #111827;
+    border-radius: 999px;
+    padding: 7px 10px;
+    font-size: .76rem;
+    font-weight: 950;
+    white-space: nowrap;
+}
+.forecast-row {
+    padding: 10px 0;
+    border-top: 1px solid #f0f2ec;
+}
+.forecast-row:first-of-type { border-top: none; }
+.forecast-row-top {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+}
+.forecast-row-name {
+    color: #111827;
+    font-size: .88rem;
+    font-weight: 900;
+    line-height: 1.25;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.forecast-row-value {
+    color: #111827;
+    font-size: 1.05rem;
+    font-weight: 950;
+    font-variant-numeric: tabular-nums;
+}
+.forecast-row-track {
+    margin-top: 7px;
+    height: 10px;
+    border-radius: 999px;
+    background: #eef2e8;
+    overflow: hidden;
+}
+.forecast-row-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: var(--green);
+}
+.forecast-row-fill.attention { background: var(--orange); }
+.forecast-row-fill.high { background: var(--red); }
+.forecast-row-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-top: 7px;
+    color: #667085;
+    font-size: .72rem;
+    font-weight: 750;
+}
+.forecast-row-chip {
+    background: #f8faf5;
+    border: 1px solid #edf0e8;
+    border-radius: 999px;
+    padding: 3px 7px;
+    color: #475467;
+}
 
 /* Força expanders/dataframes nativos a não ficarem pretos caso ainda apareçam em alguma aba. */
 [data-testid="stExpander"] details,
@@ -1070,6 +1167,54 @@ def risk_badge_html(risk: str) -> str:
     return f"<span class='forecast-risk-badge {cls}'>{html(risk_str)}</span>"
 
 
+
+def compact_forecast_chart(df: pd.DataFrame, dimension_col: str, title: str, subtitle: str) -> None:
+    """Renderiza previsão em formato compacto, legível e mais executivo que gráfico grande."""
+    if df.empty or dimension_col not in df.columns:
+        return
+
+    max_forecast = max(int(df["forecast_7d"].max()), 1) if "forecast_7d" in df.columns else 1
+    total = int(df["forecast_7d"].sum()) if "forecast_7d" in df.columns else 0
+    rows = []
+
+    for _, row in df.head(6).iterrows():
+        name = str(row.get(dimension_col, "—"))
+        historical = int(row.get("historical_30d", 0) or 0)
+        recent = int(row.get("recent_7d", 0) or 0)
+        backlog = int(row.get("open_backlog", 0) or 0)
+        forecast = int(row.get("forecast_7d", 0) or 0)
+        risk = str(row.get("risk_level", "Estável"))
+        width = max(4, min(100, round((forecast / max_forecast) * 100)))
+        fill_class = "high" if risk == "Alta demanda" else "attention" if risk == "Atenção" else "stable"
+
+        rows.append(
+            "<div class='forecast-row'>"
+            f"<div class='forecast-row-top'><span class='forecast-row-name'>{html(name)}</span><span class='forecast-row-value'>{forecast}</span></div>"
+            f"<div class='forecast-row-track'><div class='forecast-row-fill {fill_class}' style='width:{width}%;'></div></div>"
+            "<div class='forecast-row-meta'>"
+            f"<span class='forecast-row-chip'>30d: {historical}</span>"
+            f"<span class='forecast-row-chip'>7d: {recent}</span>"
+            f"<span class='forecast-row-chip'>backlog: {backlog}</span>"
+            f"{risk_badge_html(risk)}"
+            "</div>"
+            "</div>"
+        )
+
+    card_html = (
+        "<div class='forecast-visual-card'>"
+        "<div class='forecast-visual-head'>"
+        "<div>"
+        f"<div class='forecast-visual-title'>{html(title)}</div>"
+        f"<div class='forecast-visual-subtitle'>{html(subtitle)}</div>"
+        "</div>"
+        f"<div class='forecast-total-pill'>Total: {total}</div>"
+        "</div>"
+        f"{''.join(rows)}"
+        "</div>"
+    )
+    st.markdown(card_html, unsafe_allow_html=True)
+
+
 def render_forecast_table(df: pd.DataFrame, dimension_col: str, title: str) -> None:
     if df.empty or dimension_col not in df.columns:
         return
@@ -1088,47 +1233,38 @@ def render_forecast_table(df: pd.DataFrame, dimension_col: str, title: str) -> N
         width = max(4, min(100, round((forecast / max_forecast) * 100)))
 
         rows.append(
-            f"""
-            <tr>
-                <td class="forecast-main-cell">
-                    {html(name)}
-                    <div class="forecast-mini-bar"><div class="forecast-mini-fill" style="width:{width}%;"></div></div>
-                </td>
-                <td class="num">{historical}</td>
-                <td class="num">{recent}</td>
-                <td class="num">{backlog}</td>
-                <td class="num"><strong>{forecast}</strong></td>
-                <td>{risk_badge_html(risk)}</td>
-            </tr>
-            """
+            "<tr>"
+            f"<td class='forecast-main-cell'>{html(name)}<div class='forecast-mini-bar'><div class='forecast-mini-fill' style='width:{width}%;'></div></div></td>"
+            f"<td class='num'>{historical}</td>"
+            f"<td class='num'>{recent}</td>"
+            f"<td class='num'>{backlog}</td>"
+            f"<td class='num'><strong>{forecast}</strong></td>"
+            f"<td>{risk_badge_html(risk)}</td>"
+            "</tr>"
         )
 
-    st.markdown(
-        f"""
-        <div class="forecast-table-card">
-            <div class="forecast-table-title">
-                <span>{html(title)}</span>
-                <span class="forecast-table-subtitle">base: últimos 30 dias + últimos 7 dias + backlog</span>
-            </div>
-            <div class="forecast-table-wrap">
-                <table class="forecast-table">
-                    <thead>
-                        <tr>
-                            <th>{html(label_col)}</th>
-                            <th class="num">Hist. 30d</th>
-                            <th class="num">Últ. 7d</th>
-                            <th class="num">Backlog</th>
-                            <th class="num">Prev. 7d</th>
-                            <th>Risco</th>
-                        </tr>
-                    </thead>
-                    <tbody>{''.join(rows)}</tbody>
-                </table>
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
+    table_html = (
+        "<div class='forecast-table-card'>"
+        "<div class='forecast-table-title'>"
+        f"<span>{html(title)}</span>"
+        "<span class='forecast-table-subtitle'>base: 30d + 7d + backlog</span>"
+        "</div>"
+        "<div class='forecast-table-wrap'>"
+        "<table class='forecast-table'>"
+        "<thead><tr>"
+        f"<th>{html(label_col)}</th>"
+        "<th class='num'>30d</th>"
+        "<th class='num'>7d</th>"
+        "<th class='num'>Backlog</th>"
+        "<th class='num'>Prev.</th>"
+        "<th>Risco</th>"
+        "</tr></thead>"
+        f"<tbody>{''.join(rows)}</tbody>"
+        "</table>"
+        "</div>"
+        "</div>"
     )
+    st.markdown(table_html, unsafe_allow_html=True)
 
 def set_page(target: str) -> None:
     """Navigate without changing a Streamlit widget key after instantiation."""
@@ -1382,7 +1518,7 @@ def render_forecast_summary(queue_fc: pd.DataFrame, vertical_fc: pd.DataFrame) -
 
 
 
-def style_plotly(fig, title: str | None = None, height: int = 420, show_legend: bool = True):
+def style_plotly(fig, title: str | None = None, height: int = 300, show_legend: bool = True):
     """Aplica um padrão visual claro e legível em todos os gráficos do Analytics."""
     if title:
         fig.update_layout(title=dict(text=title, font=dict(size=18, color="#111827"), x=0.02, xanchor="left"))
@@ -1392,11 +1528,11 @@ def style_plotly(fig, title: str | None = None, height: int = 420, show_legend: 
         height=height,
         paper_bgcolor="#ffffff",
         plot_bgcolor="#ffffff",
-        font=dict(family="Inter, Arial, sans-serif", size=13, color="#111827"),
-        margin=dict(l=24, r=24, t=62 if title else 28, b=42),
+        font=dict(family="Inter, Arial, sans-serif", size=11, color="#111827"),
+        margin=dict(l=12, r=18, t=48 if title else 18, b=28),
         legend=dict(
             title_font=dict(color="#111827", size=12),
-            font=dict(color="#344054", size=12),
+            font=dict(color="#344054", size=10),
             bgcolor="rgba(255,255,255,0.92)",
             bordercolor="#edf0e8",
             borderwidth=1,
@@ -1414,20 +1550,20 @@ def style_plotly(fig, title: str | None = None, height: int = 420, show_legend: 
         gridcolor="#e5e7eb",
         zeroline=False,
         linecolor="#d0d5dd",
-        tickfont=dict(color="#344054", size=12),
-        title_font=dict(color="#344054", size=12),
+        tickfont=dict(color="#344054", size=10),
+        title_font=dict(color="#344054", size=10),
         automargin=True,
     )
     fig.update_yaxes(
         showgrid=False,
         linecolor="#d0d5dd",
-        tickfont=dict(color="#344054", size=12),
-        title_font=dict(color="#344054", size=12),
+        tickfont=dict(color="#344054", size=10),
+        title_font=dict(color="#344054", size=10),
         automargin=True,
     )
     fig.update_traces(
         marker_line_width=0,
-        textfont=dict(color="#111827", size=12),
+        textfont=dict(color="#111827", size=11),
         cliponaxis=False,
     )
     return fig
@@ -2321,7 +2457,7 @@ elif page == "📊  Analytics":
                 text="tickets",
                 color_discrete_map=priority_colors,
             )
-            fig = add_value_labels(style_plotly(fig, "Tickets por prioridade", height=390, show_legend=False))
+            fig = add_value_labels(style_plotly(fig, "Tickets por prioridade", height=280, show_legend=False))
             fig.update_layout(xaxis_title="Quantidade de tickets", yaxis_title="Prioridade")
             st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
 
@@ -2340,7 +2476,7 @@ elif page == "📊  Analytics":
                 text="tickets",
                 color_discrete_sequence=["#007c89"],
             )
-            fig = add_value_labels(style_plotly(fig, "Tickets por produto", height=390, show_legend=False))
+            fig = add_value_labels(style_plotly(fig, "Tickets por produto", height=280, show_legend=False))
             fig.update_layout(xaxis_title="Quantidade de tickets", yaxis_title="Produto")
             st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
 
@@ -2367,7 +2503,7 @@ elif page == "📊  Analytics":
                 category_orders={"priority": priority_order},
                 color_discrete_map=priority_colors,
             )
-            fig = style_plotly(fig, "Tickets por cliente e prioridade", height=430, show_legend=True)
+            fig = style_plotly(fig, "Tickets por cliente e prioridade", height=300, show_legend=True)
             fig.update_traces(textposition="inside", insidetextanchor="middle", textfont=dict(color="#111827", size=11))
             fig.update_layout(xaxis_title="Quantidade de tickets", yaxis_title="Cliente", barmode="stack")
             st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
@@ -2401,7 +2537,7 @@ elif page == "📊  Analytics":
                 color_discrete_map=churn_colors,
                 size_max=42,
             )
-            fig = style_plotly(fig, "Matriz de risco da carteira", height=430, show_legend=True)
+            fig = style_plotly(fig, "Matriz de risco da carteira", height=300, show_legend=True)
             fig.update_traces(textposition="top center", textfont=dict(color="#111827", size=11))
             fig.update_layout(
                 xaxis_title="Health Score",
@@ -2424,36 +2560,14 @@ elif page == "📊  Analytics":
             if forecast_queue.empty:
                 st.info("Sem dados suficientes para previsão por fila.")
             else:
-                fig_queue = px.bar(
-                    forecast_queue.sort_values("forecast_7d", ascending=True),
-                    x="forecast_7d",
-                    y="responsible_team",
-                    orientation="h",
-                    color="risk_level",
-                    text="forecast_7d",
-                    color_discrete_map=risk_colors,
-                )
-                fig_queue = add_value_labels(style_plotly(fig_queue, "Forecast por fila", height=420, show_legend=True))
-                fig_queue.update_layout(xaxis_title="Chamados previstos", yaxis_title="Fila")
-                st.plotly_chart(fig_queue, use_container_width=True, config={"displayModeBar": False})
+                compact_forecast_chart(forecast_queue, "responsible_team", "Forecast por fila", "Top filas com maior tendência de abertura")
                 render_forecast_table(forecast_queue, "responsible_team", "Detalhamento por fila")
 
         with fv_col:
             if forecast_vertical.empty:
                 st.info("Sem dados suficientes para previsão por vertical.")
             else:
-                fig_vertical = px.bar(
-                    forecast_vertical.sort_values("forecast_7d", ascending=True),
-                    x="forecast_7d",
-                    y="vertical",
-                    orientation="h",
-                    color="risk_level",
-                    text="forecast_7d",
-                    color_discrete_map=risk_colors,
-                )
-                fig_vertical = add_value_labels(style_plotly(fig_vertical, "Forecast por vertical", height=420, show_legend=True))
-                fig_vertical.update_layout(xaxis_title="Chamados previstos", yaxis_title="Vertical")
-                st.plotly_chart(fig_vertical, use_container_width=True, config={"displayModeBar": False})
+                compact_forecast_chart(forecast_vertical, "vertical", "Forecast por vertical", "Verticais com maior demanda prevista")
                 render_forecast_table(forecast_vertical, "vertical", "Detalhamento por vertical")
 
         render_text_section(
