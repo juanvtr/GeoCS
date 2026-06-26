@@ -1,12 +1,12 @@
 
 """
 GeoCS 360 — Mailchimp-style Customer Success Platform
-Versão corrigida:
+Versão final v11:
 - navegação funcional por session_state
 - navegação superior centralizada, legível e sem emojis visíveis
 - botão de Novo Ticket removido do menu principal para evitar redundância
 - CSS reforçado para visual claro mesmo quando o tema do navegador/Streamlit está escuro
-- Analytics redesenhado com gráficos legíveis, cards e visual executivo
+- Analytics redesenhado com gráficos legíveis, cards/tabelas executivas e visual limpo
 - cliente abre ticket e acompanha seus tickets
 - admin lê, responde e atualiza status
 - design claro inspirado em Mailchimp
@@ -323,6 +323,28 @@ label, .stMarkdown p { color: #344054 !important; }
     border-color: #e0bf00 !important;
 }
 
+/* Fallback forte para o botão de voltar: mira o column que contém o marcador. */
+div[data-testid="column"]:has(#back-button-marker) button {
+    background: transparent !important;
+    border: 1px solid transparent !important;
+    color: #111827 !important;
+    box-shadow: none !important;
+    min-width: 42px !important;
+    width: 42px !important;
+    height: 42px !important;
+    padding: 0 !important;
+    border-radius: 999px !important;
+    font-size: 1.35rem !important;
+}
+div[data-testid="column"]:has(#back-button-marker) button:hover {
+    background: #fff8d6 !important;
+    border-color: #e0bf00 !important;
+    color: #111827 !important;
+}
+div[data-testid="column"]:has(#back-button-marker) button * {
+    color: #111827 !important;
+}
+
 [data-testid="stPlotlyChart"] {
     background: #ffffff !important;
     border: 1px solid var(--border) !important;
@@ -469,6 +491,185 @@ label, .stMarkdown p { color: #344054 !important; }
     font-size: .78rem;
     font-weight: 800;
 }
+
+
+/* Cards executivos do forecast: valores longos não estouram e ficam legíveis. */
+.forecast-card {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 20px 22px;
+    min-height: 142px;
+    box-shadow: 0 12px 28px rgba(17, 24, 39, 0.06);
+    position: relative;
+    overflow: hidden;
+}
+.forecast-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 5px;
+    background: var(--teal);
+}
+.forecast-card.forecast-red::before { background: var(--red); }
+.forecast-card.forecast-orange::before { background: var(--orange); }
+.forecast-card.forecast-purple::before { background: var(--purple); }
+.forecast-card.forecast-blue::before { background: var(--blue); }
+.forecast-card.forecast-green::before { background: var(--green); }
+.forecast-label {
+    color: #475467;
+    font-size: .76rem;
+    font-weight: 900;
+    letter-spacing: .02em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+.forecast-value {
+    color: #111827;
+    font-size: clamp(1.75rem, 2.2vw, 2.35rem);
+    line-height: 1.02;
+    font-weight: 950;
+    letter-spacing: -0.06em;
+    max-width: 92%;
+    overflow-wrap: anywhere;
+}
+.forecast-value.long {
+    font-size: clamp(1.25rem, 1.55vw, 1.65rem);
+    line-height: 1.12;
+    letter-spacing: -0.045em;
+}
+.forecast-caption {
+    margin-top: 12px;
+    color: var(--teal);
+    font-size: .8rem;
+    font-weight: 900;
+}
+.forecast-pill {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    min-width: 38px;
+    height: 38px;
+    padding: 0 10px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #f1f6ff;
+    color: #111827;
+    font-weight: 950;
+    font-size: .84rem;
+    border: 1px solid #e3eaf7;
+}
+.forecast-card.forecast-red .forecast-pill { background: var(--red-soft); color: #b42318; border-color: #ffd7d7; }
+.forecast-card.forecast-orange .forecast-pill { background: var(--orange-soft); color: #c2410c; border-color: #ffe0c4; }
+.forecast-card.forecast-purple .forecast-pill { background: var(--purple-soft); color: #5b21b6; border-color: #ded0ff; }
+.forecast-card.forecast-blue .forecast-pill { background: var(--blue-soft); color: #1d4ed8; border-color: #d8e5ff; }
+.forecast-card.forecast-green .forecast-pill { background: var(--green-soft); color: #047857; border-color: #c9f4e2; }
+
+/* Tabelas próprias para o forecast: claras, compactas e com leitura de risco. */
+.forecast-table-card {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 16px;
+    margin-top: 16px;
+    box-shadow: 0 10px 24px rgba(17, 24, 39, 0.05);
+}
+.forecast-table-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+    color: #111827;
+    font-weight: 950;
+    letter-spacing: -0.035em;
+}
+.forecast-table-subtitle {
+    color: #667085;
+    font-size: .78rem;
+    font-weight: 700;
+}
+.forecast-table-wrap { overflow-x: auto; }
+.forecast-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    overflow: hidden;
+    border: 1px solid #edf0e8;
+    border-radius: 14px;
+    background: #ffffff;
+}
+.forecast-table th {
+    background: #f8faf5;
+    color: #344054;
+    font-size: .72rem;
+    line-height: 1.2;
+    font-weight: 950;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    padding: 11px 12px;
+    border-bottom: 1px solid #edf0e8;
+    text-align: left;
+    white-space: nowrap;
+}
+.forecast-table td {
+    color: #111827;
+    font-size: .84rem;
+    font-weight: 750;
+    padding: 12px;
+    border-bottom: 1px solid #f0f2ec;
+    vertical-align: middle;
+}
+.forecast-table tr:last-child td { border-bottom: none; }
+.forecast-table tbody tr:hover { background: #fffaf0; }
+.forecast-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+.forecast-main-cell {
+    min-width: 210px;
+    font-weight: 950 !important;
+}
+.forecast-mini-bar {
+    margin-top: 8px;
+    width: 100%;
+    height: 8px;
+    border-radius: 999px;
+    background: #eef2e8;
+    overflow: hidden;
+}
+.forecast-mini-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: var(--teal);
+}
+.forecast-risk-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px 9px;
+    border-radius: 999px;
+    font-size: .72rem;
+    font-weight: 950;
+    white-space: nowrap;
+}
+.forecast-risk-stable { background: var(--green-soft); color: #047857; }
+.forecast-risk-attention { background: var(--orange-soft); color: #c2410c; }
+.forecast-risk-high { background: var(--red-soft); color: #b42318; }
+
+/* Força expanders/dataframes nativos a não ficarem pretos caso ainda apareçam em alguma aba. */
+[data-testid="stExpander"] details,
+[data-testid="stExpander"] summary {
+    background: #ffffff !important;
+    color: #111827 !important;
+    border-color: var(--border) !important;
+}
+[data-testid="stDataFrame"] {
+    background: #ffffff !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 14px !important;
+    overflow: hidden !important;
+}
+
 
 .filterbar {
     background: var(--surface);
@@ -844,6 +1045,91 @@ def metric_card(label: str, value: str, icon: str, color: str, delta: str = "") 
     """
 
 
+
+
+def forecast_card(label: str, value: str, caption: str, tone: str = "blue", pill: str = "") -> str:
+    value_class = "forecast-value long" if len(str(value)) > 18 else "forecast-value"
+    pill_html = f"<div class='forecast-pill'>{html(pill)}</div>" if pill else ""
+    return f"""
+    <div class="forecast-card forecast-{html(tone)}">
+        {pill_html}
+        <div class="forecast-label">{html(label)}</div>
+        <div class="{value_class}">{html(value)}</div>
+        <div class="forecast-caption">{html(caption)}</div>
+    </div>
+    """
+
+
+def risk_badge_html(risk: str) -> str:
+    risk_str = str(risk or "Estável")
+    cls = {
+        "Estável": "forecast-risk-stable",
+        "Atenção": "forecast-risk-attention",
+        "Alta demanda": "forecast-risk-high",
+    }.get(risk_str, "forecast-risk-stable")
+    return f"<span class='forecast-risk-badge {cls}'>{html(risk_str)}</span>"
+
+
+def render_forecast_table(df: pd.DataFrame, dimension_col: str, title: str) -> None:
+    if df.empty or dimension_col not in df.columns:
+        return
+
+    max_forecast = max(int(df["forecast_7d"].max()), 1) if "forecast_7d" in df.columns else 1
+    label_col = "Fila" if dimension_col == "responsible_team" else "Vertical"
+
+    rows = []
+    for _, row in df.iterrows():
+        name = str(row.get(dimension_col, "—"))
+        historical = int(row.get("historical_30d", 0) or 0)
+        recent = int(row.get("recent_7d", 0) or 0)
+        backlog = int(row.get("open_backlog", 0) or 0)
+        forecast = int(row.get("forecast_7d", 0) or 0)
+        risk = str(row.get("risk_level", "Estável"))
+        width = max(4, min(100, round((forecast / max_forecast) * 100)))
+
+        rows.append(
+            f"""
+            <tr>
+                <td class="forecast-main-cell">
+                    {html(name)}
+                    <div class="forecast-mini-bar"><div class="forecast-mini-fill" style="width:{width}%;"></div></div>
+                </td>
+                <td class="num">{historical}</td>
+                <td class="num">{recent}</td>
+                <td class="num">{backlog}</td>
+                <td class="num"><strong>{forecast}</strong></td>
+                <td>{risk_badge_html(risk)}</td>
+            </tr>
+            """
+        )
+
+    st.markdown(
+        f"""
+        <div class="forecast-table-card">
+            <div class="forecast-table-title">
+                <span>{html(title)}</span>
+                <span class="forecast-table-subtitle">base: últimos 30 dias + últimos 7 dias + backlog</span>
+            </div>
+            <div class="forecast-table-wrap">
+                <table class="forecast-table">
+                    <thead>
+                        <tr>
+                            <th>{html(label_col)}</th>
+                            <th class="num">Hist. 30d</th>
+                            <th class="num">Últ. 7d</th>
+                            <th class="num">Backlog</th>
+                            <th class="num">Prev. 7d</th>
+                            <th>Risco</th>
+                        </tr>
+                    </thead>
+                    <tbody>{''.join(rows)}</tbody>
+                </table>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
 def set_page(target: str) -> None:
     """Navigate without changing a Streamlit widget key after instantiation."""
     current = st.session_state.get("app_page")
@@ -1085,13 +1371,14 @@ def render_forecast_summary(queue_fc: pd.DataFrame, vertical_fc: pd.DataFrame) -
 
     c1, c2, c3, c4 = st.columns(4)
     with c1:
-        st.markdown(metric_card("Forecast 7 dias", str(total_fc), "🔮", "blue", "Chamados previstos"), unsafe_allow_html=True)
+        st.markdown(forecast_card("Forecast 7 dias", str(total_fc), "Chamados previstos", "blue", "7d"), unsafe_allow_html=True)
     with c2:
-        st.markdown(metric_card("Fila mais pressionada", str(top_queue), "🎯", "orange", "Maior previsão"), unsafe_allow_html=True)
+        st.markdown(forecast_card("Fila mais pressionada", str(top_queue), "Maior previsão operacional", "orange", "Fila"), unsafe_allow_html=True)
     with c3:
-        st.markdown(metric_card("Vertical líder", str(top_vertical), "🏢", "purple", "Maior demanda"), unsafe_allow_html=True)
+        st.markdown(forecast_card("Vertical líder", str(top_vertical), "Maior demanda prevista", "purple", "Vertical"), unsafe_allow_html=True)
     with c4:
-        st.markdown(metric_card("Filas em alerta", str(overloaded), "⚠️", "red", "Alta demanda"), unsafe_allow_html=True)
+        tone = "red" if overloaded else "green"
+        st.markdown(forecast_card("Filas em alerta", str(overloaded), "Alta demanda", tone, "Risco"), unsafe_allow_html=True)
 
 
 
@@ -1318,7 +1605,8 @@ with top3:
             unsafe_allow_html=True,
         )
     with back_col:
-        if st.button("←", use_container_width=True, key="back_top", help="Voltar para a tela anterior"):
+        st.markdown("<span id='back-button-marker'></span>", unsafe_allow_html=True)
+        if st.button("←", use_container_width=True, key="back_top", help="Voltar para a tela anterior", type="secondary"):
             go_back()
     with exit_col:
         if st.button("Sair", type="primary", use_container_width=True, key="logout_top"):
@@ -2148,8 +2436,7 @@ elif page == "📊  Analytics":
                 fig_queue = add_value_labels(style_plotly(fig_queue, "Forecast por fila", height=420, show_legend=True))
                 fig_queue.update_layout(xaxis_title="Chamados previstos", yaxis_title="Fila")
                 st.plotly_chart(fig_queue, use_container_width=True, config={"displayModeBar": False})
-                with st.expander("Ver dados da previsão por fila"):
-                    st.dataframe(forecast_queue, use_container_width=True, hide_index=True)
+                render_forecast_table(forecast_queue, "responsible_team", "Detalhamento por fila")
 
         with fv_col:
             if forecast_vertical.empty:
@@ -2167,8 +2454,7 @@ elif page == "📊  Analytics":
                 fig_vertical = add_value_labels(style_plotly(fig_vertical, "Forecast por vertical", height=420, show_legend=True))
                 fig_vertical.update_layout(xaxis_title="Chamados previstos", yaxis_title="Vertical")
                 st.plotly_chart(fig_vertical, use_container_width=True, config={"displayModeBar": False})
-                with st.expander("Ver dados da previsão por vertical"):
-                    st.dataframe(forecast_vertical, use_container_width=True, hide_index=True)
+                render_forecast_table(forecast_vertical, "vertical", "Detalhamento por vertical")
 
         render_text_section(
             "Como interpretar a previsão",
