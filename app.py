@@ -3,7 +3,9 @@
 GeoCS 360 — Mailchimp-style Customer Success Platform
 Versão corrigida:
 - navegação funcional por session_state
-- navegação superior centralizada sem sidebar
+- navegação superior centralizada, legível e sem emojis visíveis
+- botão de Novo Ticket removido do menu principal para evitar redundância
+- CSS reforçado para visual claro mesmo quando o tema do navegador/Streamlit está escuro
 - cliente abre ticket e acompanha seus tickets
 - admin lê, responde e atualiza status
 - design claro inspirado em Mailchimp
@@ -111,6 +113,11 @@ html, body, [class*="css"] {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
 }
 
+html, body, .stApp, [data-testid="stAppViewContainer"] {
+    color-scheme: light !important;
+    color: var(--ink) !important;
+}
+
 .stApp { background: var(--bg) !important; }
 
 [data-testid="stAppViewContainer"] {
@@ -155,33 +162,56 @@ html, body, [class*="css"] {
 [data-testid="stRadio"] [role="radiogroup"] {
     display: flex !important;
     justify-content: center !important;
-    gap: 8px !important;
+    align-items: center !important;
+    gap: 10px !important;
     flex-wrap: wrap !important;
 }
 [data-testid="stRadio"] label {
-    background: rgba(255, 255, 255, 0.86) !important;
-    border: 1px solid var(--border) !important;
+    background: rgba(255, 255, 255, 0.96) !important;
+    border: 1px solid #cfd8c7 !important;
     border-radius: 999px !important;
-    padding: 9px 14px !important;
-    color: #344054 !important;
-    font-weight: 800 !important;
-    min-height: 38px !important;
+    padding: 10px 18px !important;
+    color: #111827 !important;
+    font-weight: 900 !important;
+    min-height: 42px !important;
+    opacity: 1 !important;
+    box-shadow: 0 4px 12px rgba(17, 24, 39, 0.04) !important;
+}
+[data-testid="stRadio"] label *,
+[data-testid="stRadio"] label p,
+[data-testid="stRadio"] label span,
+[data-testid="stRadio"] label div {
+    color: #111827 !important;
+    opacity: 1 !important;
+    font-weight: 900 !important;
 }
 [data-testid="stRadio"] label:hover {
     background: #fff8d6 !important;
-    border-color: #e8d16a !important;
+    border-color: #e0bf00 !important;
+    color: #111827 !important;
 }
 [data-testid="stRadio"] label:has(input:checked) {
     background: #111827 !important;
     border-color: #111827 !important;
     color: #ffffff !important;
+    box-shadow: 0 8px 18px rgba(17, 24, 39, 0.16) !important;
 }
-[data-testid="stRadio"] label:has(input:checked) * {
+[data-testid="stRadio"] label:has(input:checked) *,
+[data-testid="stRadio"] label:has(input:checked) p,
+[data-testid="stRadio"] label:has(input:checked) span,
+[data-testid="stRadio"] label:has(input:checked) div {
     color: #ffffff !important;
+    opacity: 1 !important;
 }
-[data-testid="stRadio"] div[data-baseweb="radio"] > div:first-child {
+/* Remove bolinhas/ícones nativos do radio para virar uma navegação limpa. */
+[data-testid="stRadio"] input,
+[data-testid="stRadio"] svg,
+[data-testid="stRadio"] [data-baseweb="radio"] > div:first-child,
+[data-testid="stRadio"] div[data-baseweb="radio"] > div:first-child,
+[data-testid="stRadio"] label > div:first-child:not([data-testid="stMarkdownContainer"]) {
     display: none !important;
 }
+
 
 [data-testid="stSidebar"] {
     background: var(--surface) !important;
@@ -1061,13 +1091,20 @@ role = user.get("role", "viewer")
 # MENU
 # -----------------------------------------------------------------------------
 if role == "admin":
-    menu_options = ["🏠  Visão Geral", "🎫  Tickets", "➕  Novo Ticket", "💬  Respostas", "👥  Clientes", "📊  Analytics"]
+    # Menu visível: sem Novo Ticket para não duplicar com o CTA do topo.
+    menu_options = ["🏠  Visão Geral", "🎫  Tickets", "💬  Respostas", "👥  Clientes", "📊  Analytics"]
+    hidden_pages = ["➕  Novo Ticket"]
 elif role == "client":
-    menu_options = ["🏠  Portal do Cliente", "➕  Abrir Ticket", "🎫  Meus Tickets"]
+    # O cliente abre ticket pelo CTA; o menu fica só para navegação principal.
+    menu_options = ["🏠  Portal do Cliente", "🎫  Meus Tickets"]
+    hidden_pages = ["➕  Abrir Ticket"]
 else:
     menu_options = ["🏠  Visão Geral", "🎫  Tickets", "👥  Clientes"]
+    hidden_pages = []
 
-if st.session_state.get("app_page") not in menu_options:
+allowed_pages = menu_options + hidden_pages
+
+if st.session_state.get("app_page") not in allowed_pages:
     st.session_state["app_page"] = menu_options[0]
 
 page = st.session_state["app_page"]
@@ -1109,7 +1146,10 @@ with top1:
     )
 
 with top2:
-    current_index = menu_options.index(st.session_state["app_page"])
+    # Quando a página atual é uma ação oculta (ex.: Novo Ticket), o menu continua
+    # visível sem exibir a ação como item redundante.
+    nav_page = st.session_state["app_page"] if st.session_state["app_page"] in menu_options else menu_options[0]
+    current_index = menu_options.index(nav_page)
     page_choice = st.radio(
         "Navegação",
         menu_options,
@@ -1119,7 +1159,7 @@ with top2:
         format_func=clean_menu_label,
     )
 
-    if page_choice != st.session_state["app_page"]:
+    if page_choice != st.session_state["app_page"] and page_choice in menu_options:
         st.session_state.setdefault("nav_history", []).append(st.session_state["app_page"])
         st.session_state["app_page"] = page_choice
         st.rerun()
