@@ -21,21 +21,52 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-from src.classifier import classify_ticket
-from src.db import (
-    authenticate_user,
-    execute,
-    get_client_by_id,
-    get_client_by_name,
-    get_clients,
-    get_tickets_for_user,
-    init_db,
-    insert_ticket,
-    save_ticket_response,
-    seed_clients_if_empty,
-    seed_demo_tickets,
-    seed_users_if_empty,
-)
+# ---------------------------------------------------------------------------
+# IMPORTS DO PROJETO
+# ---------------------------------------------------------------------------
+# Esta versão está adaptada para a estrutura do GitHub/Streamlit Cloud:
+#
+# repo/
+# ├── app.py
+# ├── classifier.py
+# ├── db.py
+# ├── requirements.txt
+# └── seed_data.py
+#
+# O fallback com `src.` mantém compatibilidade caso você volte a usar:
+# repo/geocs360/app.py + repo/geocs360/src/*.py
+try:
+    from classifier import classify_ticket
+    from db import (
+        authenticate_user,
+        execute,
+        get_client_by_id,
+        get_client_by_name,
+        get_clients,
+        get_tickets_for_user,
+        init_db,
+        insert_ticket,
+        save_ticket_response,
+        seed_clients_if_empty,
+        seed_demo_tickets,
+        seed_users_if_empty,
+    )
+except ModuleNotFoundError:
+    from src.classifier import classify_ticket
+    from src.db import (
+        authenticate_user,
+        execute,
+        get_client_by_id,
+        get_client_by_name,
+        get_clients,
+        get_tickets_for_user,
+        init_db,
+        insert_ticket,
+        save_ticket_response,
+        seed_clients_if_empty,
+        seed_demo_tickets,
+        seed_users_if_empty,
+    )
 
 
 st.set_page_config(
@@ -1859,3 +1890,4 @@ elif page == "📊  Analytics":
             "Esta previsão é uma camada operacional explicável: ela não tenta substituir um modelo estatístico avançado, mas ajuda o time de CS a antecipar filas e verticais com tendência de maior demanda nos próximos dias. Em uma versão com mais histórico, essa camada poderia evoluir para modelos de séries temporais ou machine learning.",
             tone="success",
         )
+
