@@ -3,7 +3,7 @@
 GeoCS 360 — Mailchimp-style Customer Success Platform
 Versão corrigida:
 - navegação funcional por session_state
-- botão de voltar para login visível no topo e na sidebar
+- navegação superior centralizada sem sidebar
 - cliente abre ticket e acompanha seus tickets
 - admin lê, responde e atualiza status
 - design claro inspirado em Mailchimp
@@ -73,7 +73,7 @@ st.set_page_config(
     page_title="GeoCS 360",
     page_icon="⚡",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 
 st.markdown(
@@ -126,6 +126,61 @@ html, body, [class*="css"] {
     padding-top: 1.1rem !important;
     padding-bottom: 3rem !important;
     max-width: 1480px !important;
+}
+
+/* Sem sidebar: a navegação principal fica no topo, centralizada. */
+[data-testid="stSidebar"],
+[data-testid="stSidebarCollapsedControl"] {
+    display: none !important;
+}
+
+.brand-mark {
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+    background: #111827;
+    color: #ffcc00;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    letter-spacing: -0.05em;
+    border: 1px solid #111827;
+}
+
+/* Radio usado como menu superior. Não há emojis visíveis no menu. */
+[data-testid="stRadio"] > label {
+    display: none !important;
+}
+[data-testid="stRadio"] [role="radiogroup"] {
+    display: flex !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    flex-wrap: wrap !important;
+}
+[data-testid="stRadio"] label {
+    background: rgba(255, 255, 255, 0.86) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 999px !important;
+    padding: 9px 14px !important;
+    color: #344054 !important;
+    font-weight: 800 !important;
+    min-height: 38px !important;
+}
+[data-testid="stRadio"] label:hover {
+    background: #fff8d6 !important;
+    border-color: #e8d16a !important;
+}
+[data-testid="stRadio"] label:has(input:checked) {
+    background: #111827 !important;
+    border-color: #111827 !important;
+    color: #ffffff !important;
+}
+[data-testid="stRadio"] label:has(input:checked) * {
+    color: #ffffff !important;
+}
+[data-testid="stRadio"] div[data-baseweb="radio"] > div:first-child {
+    display: none !important;
 }
 
 [data-testid="stSidebar"] {
@@ -631,6 +686,22 @@ def role_label(role: str) -> str:
     return {"admin": "Administrador", "client": "Cliente", "viewer": "Leitura"}.get(role, role.title())
 
 
+def clean_menu_label(label: str) -> str:
+    """Remove os ícones/emoji dos nomes do menu, mantendo os valores internos estáveis."""
+    replacements = {
+        "🏠": "",
+        "🎫": "",
+        "➕": "",
+        "💬": "",
+        "👥": "",
+        "📊": "",
+    }
+    out = str(label)
+    for old, new in replacements.items():
+        out = out.replace(old, new)
+    return " ".join(out.split())
+
+
 def priority_badge(priority: str) -> str:
     cls = {
         "Crítica": "badge-critical",
@@ -999,63 +1070,7 @@ else:
 if st.session_state.get("app_page") not in menu_options:
     st.session_state["app_page"] = menu_options[0]
 
-with st.sidebar:
-    st.markdown(
-        """
-        <div style="display:flex;align-items:center;gap:10px;margin:8px 0 18px;">
-            <div style="font-size:1.8rem;">⚡</div>
-            <div>
-                <div style="font-weight:900;color:#111827;font-size:1.1rem;letter-spacing:-.04em;">GeoCS 360</div>
-                <div style="color:#667085;font-size:.75rem;">Customer Success</div>
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    current_index = menu_options.index(st.session_state["app_page"])
-    page_choice = st.radio(
-        "Navegação",
-        menu_options,
-        index=current_index,
-        label_visibility="collapsed",
-    )
-
-    if page_choice != st.session_state["app_page"]:
-        st.session_state.setdefault("nav_history", []).append(st.session_state["app_page"])
-        st.session_state["app_page"] = page_choice
-        st.rerun()
-
-    page = st.session_state["app_page"]
-
-    st.markdown("<hr>", unsafe_allow_html=True)
-    st.markdown(
-        f"""
-        <div class="side-card" style="box-shadow:none;">
-            <div style="display:flex;align-items:center;gap:10px;">
-                <span class="avatar" style="width:36px;height:36px;">{html(initials(user.get('name','Usuário')))}</span>
-                <div>
-                    <div style="font-weight:900;color:#111827;font-size:.86rem;">{html(user.get('name','Usuário'))}</div>
-                    <div style="color:#667085;font-size:.74rem;">{html(role_label(role))}</div>
-                </div>
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    if st.button("↩️ Voltar para login", use_container_width=True, key="logout_sidebar"):
-        logout()
-
-    st.markdown(
-        """
-        <div style="margin-top:28px;color:#667085;font-size:.75rem;">
-            <strong style="color:#111827;">GeoCS 360</strong> v1.3<br>
-            Portal de tickets e atendimento
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+page = st.session_state["app_page"]
 
 
 # -----------------------------------------------------------------------------
@@ -1075,14 +1090,15 @@ insights = generate_insights(tickets, clients)
 
 
 # -----------------------------------------------------------------------------
-# TOPBAR
+# TOPBAR + MENU SUPERIOR
 # -----------------------------------------------------------------------------
-top1, top2, top3, top4 = st.columns([0.23, 0.45, 0.18, 0.14])
+top1, top2, top3 = st.columns([0.22, 0.56, 0.22])
+
 with top1:
     st.markdown(
         """
-        <div style="display:flex;align-items:center;gap:12px;padding-top:4px;">
-            <div style="font-size:1.65rem;">⚡</div>
+        <div style="display:flex;align-items:center;gap:12px;padding-top:2px;">
+            <div class="brand-mark">G</div>
             <div>
                 <div style="font-size:1.05rem;font-weight:900;color:#111827;letter-spacing:-.03em;">GeoCS 360</div>
                 <div style="font-size:.75rem;color:#667085;">Customer Success</div>
@@ -1091,21 +1107,40 @@ with top1:
         """,
         unsafe_allow_html=True,
     )
+
 with top2:
-    st.markdown("<div class='searchbox'>🔎 &nbsp; Buscar tickets, clientes, produtos... <span style='float:right;color:#98A2B3;font-weight:700;'>Ctrl + K</span></div>", unsafe_allow_html=True)
-with top3:
-    st.markdown(
-        f"""
-        <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;padding-top:1px;">
-            <span style="color:#344054;font-weight:700;">Ajuda</span>
-            <span style="font-size:1.2rem;">🔔</span>
-            <span class="avatar">{html(initials(user.get('name','Usuário')))}</span>
-        </div>
-        """,
-        unsafe_allow_html=True,
+    current_index = menu_options.index(st.session_state["app_page"])
+    page_choice = st.radio(
+        "Navegação",
+        menu_options,
+        index=current_index,
+        horizontal=True,
+        label_visibility="collapsed",
+        format_func=clean_menu_label,
     )
-with top4:
-    back_col, exit_col = st.columns([0.36, 0.64])
+
+    if page_choice != st.session_state["app_page"]:
+        st.session_state.setdefault("nav_history", []).append(st.session_state["app_page"])
+        st.session_state["app_page"] = page_choice
+        st.rerun()
+
+    page = st.session_state["app_page"]
+
+with top3:
+    profile_col, back_col, exit_col = st.columns([0.46, 0.20, 0.34])
+    with profile_col:
+        st.markdown(
+            f"""
+            <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;">
+                <div style="text-align:right;line-height:1.15;">
+                    <div style="color:#111827;font-weight:900;font-size:.82rem;">{html(user.get('name','Usuário').split()[0])}</div>
+                    <div style="color:#667085;font-size:.72rem;">{html(role_label(role))}</div>
+                </div>
+                <span class="avatar">{html(initials(user.get('name','Usuário')))}</span>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
     with back_col:
         if st.button("←", use_container_width=True, key="back_top", help="Voltar para a tela anterior"):
             go_back()
@@ -1113,7 +1148,7 @@ with top4:
         if st.button("Sair", use_container_width=True, key="logout_top"):
             logout()
 
-st.markdown("<div style='height:14px;'></div>", unsafe_allow_html=True)
+st.markdown("<div style='height:18px;'></div>", unsafe_allow_html=True)
 
 
 # -----------------------------------------------------------------------------
@@ -1328,13 +1363,13 @@ if page in ("🏠  Visão Geral", "🏠  Portal do Cliente"):
         page_header("Portal do Cliente", f"Acompanhe seus tickets, status, respostas e SLA · {client_profile['client_name']}")
         cta1, cta2 = st.columns([0.24, 0.24])
         with cta1:
-            if st.button("➕ Abrir novo ticket", type="primary", use_container_width=True):
+            if st.button("Abrir novo ticket", type="primary", use_container_width=True):
                 set_page("➕  Abrir Ticket")
         with cta2:
-            if st.button("🎫 Ver meus tickets", use_container_width=True):
+            if st.button("Ver meus tickets", use_container_width=True):
                 set_page("🎫  Meus Tickets")
     else:
-        page_header("Visão Geral", "Acompanhe os principais indicadores de atendimento", "＋ Novo Ticket", "➕  Novo Ticket")
+        page_header("Visão Geral", "Acompanhe os principais indicadores de atendimento", "Novo Ticket", "➕  Novo Ticket")
 
     total = len(tickets)
     critical = int((tickets["priority"] == "Crítica").sum()) if not tickets.empty else 0
@@ -1535,7 +1570,7 @@ elif page in ("➕  Novo Ticket", "➕  Abrir Ticket"):
         default_message = "" if selected_example == "Mensagem livre" else examples[selected_example]
         message = st.text_area("Mensagem recebida", value=default_message, height=180, placeholder="Descreva o problema relatado pelo cliente...")
 
-        submitted = st.button("⚡ Analisar e criar ticket", type="primary", use_container_width=True)
+        submitted = st.button("Analisar e criar ticket", type="primary", use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
     with col_result:
@@ -1600,7 +1635,7 @@ elif page in ("➕  Novo Ticket", "➕  Abrir Ticket"):
                 )
 
             st.markdown("<div style='height:12px;'></div>", unsafe_allow_html=True)
-            if st.button("🎫 Abrir ticket criado", use_container_width=True):
+            if st.button("Abrir ticket criado", use_container_width=True):
                 set_page("🎫  Meus Tickets" if role == "client" else "🎫  Tickets")
         else:
             render_html_block(
@@ -1621,7 +1656,7 @@ elif page in ("🎫  Tickets", "🎫  Meus Tickets"):
     page_header(
         "Meus Tickets" if role == "client" else "Tickets",
         "Acompanhe status, SLA, resposta oficial e detalhes de cada solicitação" if role == "client" else "Painel operacional para leitura, resposta e tratativa dos chamados",
-        "＋ Novo Ticket" if role == "admin" else None,
+        "Novo Ticket" if role == "admin" else None,
         "➕  Novo Ticket" if role == "admin" else None,
     )
 
