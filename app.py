@@ -411,6 +411,128 @@ div[data-testid="column"]:has(#back-button-marker) button div {
     min-height:46px;
 }
 
+
+/* Fix definitivo do header direito: o bloco real é o HorizontalBlock que contém o back-button-marker. */
+div[data-testid="stHorizontalBlock"]:has(#back-button-marker) {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 10px !important;
+}
+div[data-testid="stHorizontalBlock"]:has(#back-button-marker) > div[data-testid="column"] {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 54px !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+div[data-testid="stHorizontalBlock"]:has(#back-button-marker) .element-container,
+div[data-testid="stHorizontalBlock"]:has(#back-button-marker) [data-testid="stMarkdownContainer"],
+div[data-testid="stHorizontalBlock"]:has(#back-button-marker) [data-testid="stButton"],
+div[data-testid="stHorizontalBlock"]:has(#back-button-marker) .stButton {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+div[data-testid="stHorizontalBlock"]:has(#back-button-marker) .top-profile-box {
+    min-height: 48px !important;
+    height: 48px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+}
+div[data-testid="column"]:has(#back-button-marker) .element-container {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    height: 48px !important;
+}
+div[data-testid="column"]:has(#back-button-marker) [data-testid="stButton"] {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    height: 48px !important;
+}
+div[data-testid="column"]:has(#back-button-marker) button,
+div[data-testid="column"]:has(#back-button-marker) button[data-testid="stBaseButton-secondary"] {
+    width: 42px !important;
+    min-width: 42px !important;
+    height: 42px !important;
+    min-height: 42px !important;
+    max-height: 42px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    line-height: 1 !important;
+    background: transparent !important;
+    border: 1px solid #cfd8c7 !important;
+    border-radius: 999px !important;
+    color: #111827 !important;
+}
+div[data-testid="column"]:has(#back-button-marker) button:hover,
+div[data-testid="column"]:has(#back-button-marker) button[data-testid="stBaseButton-secondary"]:hover {
+    background: #fff8d6 !important;
+    border-color: #e0bf00 !important;
+    color: #111827 !important;
+}
+div[data-testid="column"]:has(#back-button-marker) button p,
+div[data-testid="column"]:has(#back-button-marker) button span,
+div[data-testid="column"]:has(#back-button-marker) button div {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #111827 !important;
+    font-size: 1.15rem !important;
+    font-weight: 900 !important;
+    line-height: 1 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Tabs sempre legíveis no tema claro. */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 18px !important;
+    border-bottom: 1px solid #dfe6d8 !important;
+    padding-bottom: 0 !important;
+}
+.stTabs [data-baseweb="tab"],
+.stTabs button[data-baseweb="tab"] {
+    background: transparent !important;
+    color: #344054 !important;
+    opacity: 1 !important;
+    font-weight: 900 !important;
+    padding: 0 0 10px 0 !important;
+    border-radius: 0 !important;
+}
+.stTabs [data-baseweb="tab"] *,
+.stTabs button[data-baseweb="tab"] *,
+.stTabs [data-baseweb="tab"] p,
+.stTabs button[data-baseweb="tab"] p,
+.stTabs [data-baseweb="tab"] span,
+.stTabs button[data-baseweb="tab"] span {
+    color: #344054 !important;
+    opacity: 1 !important;
+    font-weight: 900 !important;
+}
+.stTabs [data-baseweb="tab"][aria-selected="true"],
+.stTabs button[data-baseweb="tab"][aria-selected="true"] {
+    color: #ef4444 !important;
+    border-bottom: 2px solid #ef4444 !important;
+}
+.stTabs [data-baseweb="tab"][aria-selected="true"] *,
+.stTabs button[data-baseweb="tab"][aria-selected="true"] *,
+.stTabs [data-baseweb="tab"][aria-selected="true"] p,
+.stTabs button[data-baseweb="tab"][aria-selected="true"] p {
+    color: #ef4444 !important;
+}
+.stTabs [data-baseweb="tab-highlight"] {
+    background: #ef4444 !important;
+}
+
 [data-testid="stPlotlyChart"] {
     background: #ffffff !important;
     border: 1px solid var(--border) !important;
@@ -1794,7 +1916,7 @@ with top2:
 with top3:
     # Marcador usado apenas para CSS: mantém usuário, botão voltar e sair na mesma linha.
     st.markdown("<span id='top-actions-marker'></span>", unsafe_allow_html=True)
-    profile_col, back_col, exit_col = st.columns([0.50, 0.14, 0.36], gap="small")
+    profile_col, back_col, exit_col = st.columns([0.48, 0.18, 0.34], gap="small")
     with profile_col:
         st.markdown(
             f"""
