@@ -55,6 +55,23 @@ def query_df(sql: str, params: Optional[list] = None) -> pd.DataFrame:
     return execute(sql, params).df()
 
 
+def fetch_scalar(sql: str, params: Optional[list] = None, default=0):
+    """Return the first column of the first row safely.
+
+    This avoids the Streamlit Cloud crash where a seed COUNT query may
+    unexpectedly return no row during app bootstrap/reload.
+    """
+    cur = execute(sql, params)
+    if cur is None:
+        return default
+
+    row = cur.fetchone()
+    if row is None or len(row) == 0 or row[0] is None:
+        return default
+
+    return row[0]
+
+
 def column_exists(table_name: str, column_name: str) -> bool:
     try:
         df = query_df(f"PRAGMA table_info('{table_name}')")
@@ -243,7 +260,7 @@ def _client_rows() -> list[tuple]:
 
 
 def seed_clients_if_empty() -> None:
-    count = execute("SELECT COUNT(*) FROM clients").fetchone()[0]
+    count = int(fetch_scalar("SELECT COUNT(*) FROM clients", default=0))
     if count == 0:
         for row in _client_rows():
             execute("INSERT INTO clients VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", list(row))
@@ -264,7 +281,7 @@ def seed_clients_if_empty() -> None:
 
 
 def seed_users_if_empty() -> None:
-    count = execute("SELECT COUNT(*) FROM users").fetchone()[0]
+    count = int(fetch_scalar("SELECT COUNT(*) FROM users", default=0))
     if count > 0:
         return
 
@@ -426,14 +443,17 @@ def save_ticket_response(ticket_id: str, response: str, responder_name: str, new
 
 
 def _seed_ticket_exists(ticket_id: str) -> bool:
-    return execute("SELECT COUNT(*) FROM tickets WHERE ticket_id = ?", [ticket_id]).fetchone()[0] > 0
+    return int(fetch_scalar("SELECT COUNT(*) FROM tickets WHERE ticket_id = ?", [ticket_id], default=0)) > 0
 
 
 def _seed_one(ticket_id: str, client_name: str, requester: str, message: str, days_ago: int, status: str) -> None:
     if _seed_ticket_exists(ticket_id):
         return
 
-    from src.classifier import classify_ticket
+    try:
+        from classifier import classify_ticket
+    except Exception:
+        from src.classifier import classify_ticket
 
     client = get_client_by_name(client_name)
     classification = classify_ticket(message, client)
