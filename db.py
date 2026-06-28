@@ -1,5 +1,4 @@
 
-
 from __future__ import annotations
 
 import os
@@ -362,42 +361,51 @@ def _insert_ticket_with_id(
     responded_at: Optional[datetime] = None,
 ) -> None:
     ensure_ticket_response_columns()
-    execute(
-        """
-        INSERT INTO tickets (
-            ticket_id, created_at, client_id, client_name, requester, original_message,
-            product, category, priority, sentiment, business_impact, sla_hours,
-            responsible_team, summary, next_action, suggested_response,
-            region_detected, business_objective, status,
-            admin_response, responded_by, responded_at
+
+    try:
+        execute(
+            """
+            INSERT INTO tickets (
+                ticket_id, created_at, client_id, client_name, requester, original_message,
+                product, category, priority, sentiment, business_impact, sla_hours,
+                responsible_team, summary, next_action, suggested_response,
+                region_detected, business_objective, status,
+                admin_response, responded_by, responded_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            [
+                ticket_id,
+                created_at,
+                client["client_id"],
+                client["client_name"],
+                requester,
+                message,
+                classification["product"],
+                classification["category"],
+                classification["priority"],
+                classification["sentiment"],
+                classification["business_impact"],
+                classification["sla_hours"],
+                classification["responsible_team"],
+                classification["summary"],
+                classification["next_action"],
+                classification["suggested_response"],
+                classification["region_detected"],
+                classification["business_objective"],
+                status,
+                admin_response,
+                responded_by,
+                responded_at,
+            ],
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """,
-        [
-            ticket_id,
-            created_at,
-            client["client_id"],
-            client["client_name"],
-            requester,
-            message,
-            classification["product"],
-            classification["category"],
-            classification["priority"],
-            classification["sentiment"],
-            classification["business_impact"],
-            classification["sla_hours"],
-            classification["responsible_team"],
-            classification["summary"],
-            classification["next_action"],
-            classification["suggested_response"],
-            classification["region_detected"],
-            classification["business_objective"],
-            status,
-            admin_response,
-            responded_by,
-            responded_at,
-        ],
-    )
+    except Exception as exc:
+        # Demo safety: if a fixed seed ticket already exists, do not crash the app.
+        # User-created tickets use random IDs and should not hit this path.
+        msg = str(exc).lower()
+        if "constraint" in msg or "duplicate" in msg or "primary key" in msg or "unique" in msg:
+            return
+        raise
 
 
 def get_tickets() -> pd.DataFrame:
@@ -475,12 +483,17 @@ def _seed_one(ticket_id: str, client_name: str, requester: str, message: str, da
 
 
 def seed_demo_tickets() -> None:
-    """Cria massa demonstrativa com variação por cliente, fila e vertical.
+    """Cria massa demonstrativa apenas quando a tabela estiver vazia.
 
-    Objetivo: alimentar métricas, analytics e previsão de abertura de chamados.
-    Idempotente: usa ticket_id fixo e não duplica dados em reruns.
+    Importante para demo/Streamlit Cloud:
+    se já existe qualquer ticket no banco, pulamos o seed para evitar colisão
+    de IDs fixos em reinicializações ou deploys.
     """
     ensure_ticket_response_columns()
+
+    existing_tickets = int(fetch_scalar("SELECT COUNT(*) FROM tickets", default=0) or 0)
+    if existing_tickets > 0:
+        return
 
     demo_tickets = [
         # Vivo — 8 tickets
@@ -533,4 +546,9 @@ def seed_demo_tickets() -> None:
     ]
 
     for args in demo_tickets:
-        _seed_one(*args)
+        try:
+            _seed_one(*args)
+        except Exception:
+            # Seed demo must never block the live app.
+            # If one demo row fails, the user must still be able to open tickets.
+            continue
