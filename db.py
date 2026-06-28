@@ -483,72 +483,10 @@ def _seed_one(ticket_id: str, client_name: str, requester: str, message: str, da
 
 
 def seed_demo_tickets() -> None:
-    """Cria massa demonstrativa apenas quando a tabela estiver vazia.
+    """Seed desativado para demo ao vivo.
 
-    Importante para demo/Streamlit Cloud:
-    se já existe qualquer ticket no banco, pulamos o seed para evitar colisão
-    de IDs fixos em reinicializações ou deploys.
+    O banco do Streamlit Cloud já possui dados demo. Esta função fica como no-op
+    para impedir que tickets com IDs fixos sejam inseridos novamente e travem o app.
     """
     ensure_ticket_response_columns()
-
-    existing_tickets = int(fetch_scalar("SELECT COUNT(*) FROM tickets", default=0) or 0)
-    if existing_tickets > 0:
-        return
-
-    demo_tickets = [
-        # Vivo — 8 tickets
-        ("FCT-VIVO-001", "Vivo", "Ana Planejamento", "Após a atualização do portal, o mapa de cobertura da região de Campinas deixou de exibir torres LTE e 5G. A equipe de planejamento não consegue validar a expansão prevista para esta semana.", 1, "Aberto"),
-        ("FCT-VIVO-002", "Vivo", "Carlos Operações", "As camadas de fibra metropolitana não carregam no ArcGIS Enterprise e o NOC não consegue cruzar incidentes com áreas de cobertura.", 3, "Em análise"),
-        ("FCT-VIVO-003", "Vivo", "Marina Campo", "Equipe de campo reportou falha de sincronização no Field Maps ao atualizar pontos de manutenção de antenas.", 5, "Aguardando cliente"),
-        ("FCT-VIVO-004", "Vivo", "Rafael Rede", "Precisamos revisar permissões de grupos no portal para separar equipes de planejamento, campo e operação.", 8, "Resolvido"),
-        ("FCT-VIVO-005", "Vivo", "Juliana BI", "Dashboard de indicadores de expansão 5G está com refresh atrasado desde ontem e impacta reunião de planejamento.", 11, "Em análise"),
-        ("FCT-VIVO-006", "Vivo", "Pedro Engenharia", "Camadas de torres e antenas aparecem com simbologia incorreta em algumas regiões do Sudeste.", 16, "Resolvido"),
-        ("FCT-VIVO-007", "Vivo", "Luiza Telecom", "Solicito orientação sobre publicação de novo Web Map para análise de cobertura indoor.", 23, "Resolvido"),
-        ("FCT-VIVO-008", "Vivo", "Bruno NOC", "Mapa operacional de incidentes de rede móvel parou de atualizar em tempo real durante janela crítica.", 27, "Escalado"),
-
-        # Prefeitura do Recife — 7 tickets
-        ("FCT-REC-001", "Prefeitura do Recife", "Operador COP", "O mapa de monitoramento das ocorrências do Centro de Operações deixou de atualizar em tempo real e está impactando a resposta operacional da prefeitura.", 0, "Aberto"),
-        ("FCT-REC-002", "Prefeitura do Recife", "João Segurança", "Dashboard de ocorrências por bairro não carrega os dados da madrugada e a equipe precisa acompanhar eventos críticos.", 2, "Em análise"),
-        ("FCT-REC-003", "Prefeitura do Recife", "Mariana COP", "Usuários do turno noturno não conseguem acessar o portal para registrar camadas de eventos urbanos.", 4, "Aguardando cliente"),
-        ("FCT-REC-004", "Prefeitura do Recife", "Paulo Operações", "Precisamos de treinamento rápido para operadores do COP criarem filtros de ocorrências por tipo de evento.", 6, "Resolvido"),
-        ("FCT-REC-005", "Prefeitura do Recife", "Lívia Defesa Civil", "Camada de áreas de risco deixou de exibir polígonos durante acompanhamento de chuva forte.", 9, "Escalado"),
-        ("FCT-REC-006", "Prefeitura do Recife", "Rogério Dados", "Gostaria de confirmar como alterar legenda do mapa de efetivo policial por bairro.", 18, "Resolvido"),
-        ("FCT-REC-007", "Prefeitura do Recife", "Fernanda Gestão", "Indicadores de tempo de resposta no dashboard estão divergentes do relatório consolidado.", 24, "Em análise"),
-
-        # Eletrobras Chesf — 6 tickets
-        ("FCT-CHESF-001", "Eletrobras Chesf", "Analista de Ativos", "Nossa equipe de operação não consegue visualizar ativos da rede elétrica no ArcGIS Enterprise após a atualização do portal.", 1, "Aberto"),
-        ("FCT-CHESF-002", "Eletrobras Chesf", "Carlos Manutenção", "Camadas de linhas de transmissão não carregam em alguns mapas usados para planejamento de manutenção.", 7, "Em análise"),
-        ("FCT-CHESF-003", "Eletrobras Chesf", "Patrícia Energia", "Dashboard de ativos críticos está desatualizado e impacta reunião operacional com a equipe de manutenção.", 12, "Aguardando cliente"),
-        ("FCT-CHESF-004", "Eletrobras Chesf", "Roberto GIS", "Solicito apoio para organizar permissões de acesso por equipes regionais no portal.", 15, "Resolvido"),
-        ("FCT-CHESF-005", "Eletrobras Chesf", "Daniel Operação", "Serviço de mapa usado para inspeção de subestações está indisponível.", 21, "Escalado"),
-        ("FCT-CHESF-006", "Eletrobras Chesf", "Renata Planejamento", "Preciso de orientação para alterar simbologia de ativos no Web Map sem afetar dashboards publicados.", 29, "Resolvido"),
-
-        # BP — 6 tickets
-        ("FCT-BP-001", "BP", "Coordenador Campo", "As equipes de campo não conseguem sincronizar os pontos coletados no Field Maps desde ontem. Isso está atrasando a logística de campo e gerando retrabalho.", 2, "Aberto"),
-        ("FCT-BP-002", "BP", "Marcos Operações", "Formulário do Survey123 para vistoria de campo não está salvando todas as respostas.", 5, "Em análise"),
-        ("FCT-BP-003", "BP", "Luciana Logística", "Dashboard de rotas e consumo de combustível não atualiza desde ontem e prejudica análise operacional.", 10, "Aguardando cliente"),
-        ("FCT-BP-004", "BP", "Eduardo Campo", "Alguns pontos coletados offline aparecem duplicados após sincronização.", 14, "Resolvido"),
-        ("FCT-BP-005", "BP", "Camila Dados", "Gostaria de agendar treinamento sobre coleta offline no Field Maps para novas equipes.", 20, "Resolvido"),
-        ("FCT-BP-006", "BP", "Fábio Operações", "Mapa de áreas operacionais está lento para carregar em tablets usados em campo.", 28, "Em análise"),
-
-        # Starbucks — 5 tickets
-        ("FCT-STAR-001", "Starbucks", "Gerente Expansão", "Estamos avaliando novos pontos de loja no Sudeste, mas o dashboard com dados de mobilidade urbana e potencial de consumo não atualiza desde ontem. A análise de expansão está parada.", 3, "Aberto"),
-        ("FCT-STAR-002", "Starbucks", "Ana Estratégia", "Precisamos de uma demonstração sobre como criar filtros no dashboard de expansão e compartilhar a visualização com outras áreas.", 8, "Resolvido"),
-        ("FCT-STAR-003", "Starbucks", "Bruno Analytics", "Web Map de clusters de varejo não exibe algumas camadas de demografia.", 13, "Em análise"),
-        ("FCT-STAR-004", "Starbucks", "Carla Expansão", "Gostaria de saber onde encontro a documentação para alterar a cor da legenda em um Web Map.", 22, "Resolvido"),
-        ("FCT-STAR-005", "Starbucks", "Diretoria", "Estamos insatisfeitos com o suporte e queremos avaliar o cancelamento do contrato se não houver plano de ação.", 30, "Escalado"),
-
-        # Natura — 4 tickets
-        ("FCT-NAT-001", "Natura", "Analista Sustentabilidade", "O dashboard de rastreabilidade da cadeia sustentável não atualizou os dados desta semana e precisamos validar indicadores para uma reunião executiva.", 4, "Aberto"),
-        ("FCT-NAT-002", "Natura", "Bianca Cadeia", "Gostaríamos de agendar uma reunião para revisar o dashboard de rastreabilidade e melhorar filtros e indicadores.", 11, "Resolvido"),
-        ("FCT-NAT-003", "Natura", "Felipe Logística", "Camada hospedada com origem dos insumos não está refletindo atualizações do último ETL.", 17, "Em análise"),
-        ("FCT-NAT-004", "Natura", "Juliana ESG", "Preciso confirmar se é possível alterar o nome de uma camada hospedada sem impactar o dashboard publicado.", 26, "Resolvido"),
-    ]
-
-    for args in demo_tickets:
-        try:
-            _seed_one(*args)
-        except Exception:
-            # Seed demo must never block the live app.
-            # If one demo row fails, the user must still be able to open tickets.
-            continue
+    return
