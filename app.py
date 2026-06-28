@@ -1838,13 +1838,13 @@ role = user.get("role", "viewer")
 # MENU
 # -----------------------------------------------------------------------------
 if role == "admin":
-    # Menu visível: sem Novo Ticket para não duplicar com o CTA do topo.
-    menu_options = ["🏠  Visão Geral", "🎫  Tickets", "💬  Respostas", "👥  Clientes", "📊  Analytics"]
-    hidden_pages = ["➕  Novo Ticket"]
+    # Menu visível com Novo Ticket para garantir a demonstração.
+    menu_options = ["🏠  Visão Geral", "➕  Novo Ticket", "🎫  Tickets", "💬  Respostas", "👥  Clientes", "📊  Analytics"]
+    hidden_pages = []
 elif role == "client":
-    # O cliente abre ticket pelo CTA; o menu fica só para navegação principal.
-    menu_options = ["🏠  Portal do Cliente", "🎫  Meus Tickets"]
-    hidden_pages = ["➕  Abrir Ticket"]
+    # Cliente também vê Abrir Ticket no menu para garantir a demonstração.
+    menu_options = ["🏠  Portal do Cliente", "➕  Abrir Ticket", "🎫  Meus Tickets"]
+    hidden_pages = []
 else:
     menu_options = ["🏠  Visão Geral", "🎫  Tickets", "👥  Clientes"]
     hidden_pages = []
